@@ -6,7 +6,7 @@ Model Context Protocol (MCP) server for Ubiquiti UniFi Network management. Contr
 
 ## Features
 
-- **30 management tools** for complete network control
+- **27 management tools** for complete network control
 - **WiFi Network Management**: Create, update, and monitor WiFi networks with detailed queries
 - **Firewall & Security**: Manage firewall zones, ACL rules with detailed access control
 - **Traffic Control**: Configure traffic rules and rate limiting
@@ -114,6 +114,84 @@ Then request network management tasks:
 - "List all clients connected to the main WiFi network"
 - "Set up a firewall rule blocking port 8080"
 - "Get traffic statistics for my network"
+
+For detailed AI assistant guidance, see [.github/copilot-instructions.md](.github/copilot-instructions.md).
+
+## Docker Support
+
+### Build Docker Image
+
+```bash
+docker build -t unifi-network-mcp:latest .
+```
+
+### Run with Docker
+
+```bash
+docker run -e UNIFI_API_KEY=your-key -e UNIFI_BASE_URL=https://your-url unifi-network-mcp:latest
+```
+
+### Docker Compose
+
+```bash
+# Create .env file with your configuration
+cp .env.example .env
+# Edit .env with your UniFi credentials
+
+# Start the service
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+```
+
+## GitHub Actions & CI/CD
+
+This project includes automated workflows:
+
+- **Tests**: Runs on every push and pull request
+- **Docker Build**: Validates Dockerfile builds
+- **Release**: Creates multi-platform binaries (Linux, macOS, Windows)
+- **Auto-assign**: Assigns PRs to authors
+
+See [.github/workflows](.github/workflows) for details.
+
+## Skills & Capabilities
+
+This MCP implements the following domain-specific skills:
+
+- **Device Management**: Device adoption, inventory, and monitoring
+- **Infrastructure Reporting**: Health reports, performance analysis, capacity planning
+- **Network Monitoring**: Site health, device status, diagnostics
+- **Security Management**: Firewall zones, ACL rules, hotspot management
+- **Traffic Analysis**: DPI classification, bandwidth analysis, QoS optimization
+- **WiFi Management**: Network optimization, client analysis, band distribution
+
+See [.github/skills](.github/skills) for detailed skill documentation.
+
+## Development
+
+### Building from Source
+
+```bash
+make build
+```
+
+### Running Tests
+
+```bash
+make test
+```
+
+### Cleaning Build Artifacts
+
+```bash
+make clean
+```
+
+## API Reference
+
+For detailed API documentation, see [docs/API_REFERENCE.md](docs/API_REFERENCE.md).
 
 ## Project Structure
 
