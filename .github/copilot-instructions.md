@@ -220,12 +220,16 @@ Ask Copilot: "I'm having [issue]. Help me diagnose and fix it"
 
 ## Documentation References
 
-For detailed information, users can consult:
-- **Setup**: See `/docs/SETUP.md` for installation
-- **Examples**: See `/docs/EXAMPLES.md` for usage scenarios
-- **API**: See `/docs/API_REFERENCE.md` for all endpoints
-- **Best Practices**: See `/docs/BEST_PRACTICES.md`
-- **Troubleshooting**: See `/docs/TROUBLESHOOTING.md`
+For detailed information about UniFi Network management, users can consult:
+- **Getting Started**: See `/docs/GETTING_STARTED.md` for initial setup
+- **Capabilities**: See `/docs/CAPABILITIES.md` for complete feature list
+- **Examples**: See `/docs/EXAMPLES.md` for network management scenarios
+- **API Reference**: See `/docs/API_REFERENCE.md` for all network endpoints
+- **Best Practices**: See `/docs/BEST_PRACTICES.md` for network optimization
+- **Troubleshooting**: See `/docs/TROUBLESHOOTING.md` for network issues
+- **Copilot Guide**: See `/docs/COPILOT_GUIDE.md` for AI assistance integration
+- **VS Code Integration**: See `/docs/VS_CODE_INTEGRATION.md` for editor setup
+- **Deployment**: See `/docs/DEPLOYMENT.md` for production deployment
 
 ## Shell Scripting - Fish Shell Compatibility
 
