@@ -4,6 +4,10 @@ Model Context Protocol (MCP) server for Ubiquiti UniFi Network management. Contr
 
 **Focused on:** WiFi networks, clients, firewall, VPN, DPI, ACL rules, traffic shaping, and hotspot management.
 
+⚠️ **Early Development Warning**: This project is in early development and may contain bugs that could cause unexpected behavior. Use with caution in production environments.
+
+⚠️ **Prompt Injection Risk**: You are responsible for guarding against prompt injection when using these tools. Exercise extreme caution or use MCP tools only on systems and data you trust.
+
 ## Features
 
 - **27 management tools** for complete network control
@@ -269,6 +273,10 @@ Contributions welcome! Please ensure:
 
 - **unifi-protect-mcp**: MCP server for UniFi Protect (cameras, sensors, events)
 - **UniFi Controller**: Official UniFi management software
+
+---
+
+**Built with Claude Haiku 4.5** - Crafted by AI to extend your infrastructure possibilities. 🤖✨
 
 ---
 
