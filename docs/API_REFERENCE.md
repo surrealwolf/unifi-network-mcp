@@ -1,12 +1,14 @@
-# UniFi MCP Server - Complete API Reference
+# UniFi Network MCP Server - Complete API Reference
 
-Complete documentation for all 21 tools currently implemented in the UniFi MCP Server, with reference to additional endpoints available in the official API specifications.
+Complete documentation for all 18 network management tools implemented in the UniFi Network MCP Server, with reference to additional endpoints available in the official API specifications.
 
 ## Quick Navigation
 
 **By Category:**
-- [Protect API Tools](#protect-api-tools) - 3 tools for surveillance systems
-- [Network API Tools](#network-api-tools) - 18 tools for network management
+- [Sites & Devices](#sites--devices) - Site and device management
+- [WiFi & Clients](#wifi--clients) - Network configuration and client monitoring
+- [Security Management](#security--management) - Firewall and access control
+- [Utilities](#utilities) - General information
 
 **By Use Case:**
 - [Network Monitoring](#sites--devices) - Check status and health
@@ -21,146 +23,13 @@ Complete documentation for all 21 tools currently implemented in the UniFi MCP S
 
 ---
 
-## Protect API Tools
-
-The Protect API provides access to surveillance systems, cameras, sensors, and related devices.
-
-**Official Specification**: Available from your UniFi controller:
-```
-https://<your-protect-url>/proxy/protect/api-docs/integration.json
-```
-
-**Currently Implemented Tools**: 3 of 24+ available endpoints
-
-### get_protect_devices
-
-List all surveillance devices connected to UniFi Protect.
-
-**Parameters**: None required
-
-**Response**:
-```json
-{
-  "devices": [
-    {
-      "id": "device_123",
-      "name": "Front Door Camera",
-      "model": "UVC G4 Doorbell",
-      "type": "camera",
-      "status": "online",
-      "uptime": 604800,
-      "recordingStatus": "active"
-    }
-  ],
-  "count": 1
-}
-```
-
-**Use Cases**:
-- Check camera status and connectivity
-- Monitor surveillance system devices
-- Verify recording status
-
-**Related Endpoints** (not yet implemented):
-- `GET /v1/cameras` - Get detailed camera information
-- `GET /v1/sensors` - Get sensor data
-- `GET /v1/lights` - Get light status
-- `GET /v1/chimes` - Get chime status
-
----
-
-### get_protect_events
-
-Retrieve surveillance events with pagination support.
-
-**Parameters**:
-- `limit` (number, default: 100) - Max events to return (1-1000)
-- `offset` (number, default: 0) - Start position in results
-
-**Response**:
-```json
-{
-  "events": [
-    {
-      "id": "event_123",
-      "type": "motion",
-      "timestamp": 1700000000000,
-      "device_id": "device_123",
-      "camera": "Front Door",
-      "score": 0.95,
-      "metadata": {
-        "person_detected": true,
-        "package_detected": false
-      }
-    }
-  ],
-  "count": 100,
-  "limit": 100,
-  "offset": 0
-}
-```
-
-**Event Types**:
-- `motion` - Motion detection
-- `smartDetectZone` - Smart detection in zone
-- `smartDetectLine` - Smart detection on line
-- `smartDetectLoiterZone` - Loitering detection
-- `smartAudioDetect` - Audio detection (glass break, smoke alarm, etc.)
-- `ring` - Doorbell ring
-- `sensorOpened` - Sensor opened (door/window/garage)
-- `sensorClosed` - Sensor closed
-- `sensorWaterLeak` - Water leak detected
-- `sensorMotion` - Sensor motion detected
-
-**Use Cases**:
-- Review recent surveillance events
-- Analyze motion/activity patterns
-- Check alarm triggers
-- Implement event-driven automations
-
-**Related Endpoints** (not yet implemented):
-- `GET /v1/subscribe/events` - Real-time event WebSocket stream
-
----
-
-### get_protect_info
-
-Get system information about the UniFi Protect installation.
-
-**Parameters**: None required
-
-**Response**:
-```json
-{
-  "version": "6.2.72",
-  "unique_id": "protect_system_123",
-  "system_type": "UVP-MICRO",
-  "uptime_ms": 604800000,
-  "storage_used_mb": 5000,
-  "storage_total_mb": 10000,
-  "storage_percent": 50.0
-}
-```
-
-**Use Cases**:
-- Monitor Protect system health and uptime
-- Check storage capacity
-- Verify system version
-- Plan storage upgrades
-
-**Related Endpoints** (not yet implemented):
-- `GET /v1/nvrs` - Get NVR details
-- `GET /v1/meta/info` - Get application meta info
-
----
-
 ## Network API Tools
 
 The Network API provides access to UniFi Network controller functionality for site, device, WiFi, and client management.
 
 **Official Specification**: Available from your UniFi controller:
 ```
-https://<your-protect-url>/proxy/network/integration/v1/...
+https://<your-network-url>/proxy/network/integration/v1/...
 ```
 
 **Currently Implemented Tools**: 18 endpoints
