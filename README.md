@@ -6,14 +6,15 @@ Model Context Protocol (MCP) server for Ubiquiti UniFi Network management. Contr
 
 ## Features
 
-- **27 management tools** for complete network control
-- **WiFi Network Management**: Create, update, and monitor WiFi networks
-- **Firewall & Security**: Manage firewall zones and ACL rules
+- **30 management tools** for complete network control
+- **WiFi Network Management**: Create, update, and monitor WiFi networks with detailed queries
+- **Firewall & Security**: Manage firewall zones, ACL rules with detailed access control
 - **Traffic Control**: Configure traffic rules and rate limiting
-- **VPN Management**: Establish site-to-site tunnels
-- **Hotspot Services**: Manage guest WiFi vouchers
+- **VPN Management**: Establish site-to-site tunnels with server management
+- **Hotspot Services**: Manage guest WiFi vouchers with detailed tracking
 - **Deep Packet Inspection**: Analyze DPI applications and categories
-- **Device Management**: Monitor sites, devices, and client connections
+- **Device Management**: Monitor sites, devices, and client connections with health checks
+- **Network Configuration**: Manage WAN config, device tags, and RADIUS profiles
 - **Stdio Transport**: MCP protocol over standard input/output for seamless integration
 
 ## Quick Start

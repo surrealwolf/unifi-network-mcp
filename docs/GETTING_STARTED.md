@@ -33,7 +33,7 @@ go run cmd/main.go
 Expected output:
 ```
 INFO[...] Initializing UniFi Network MCP Server
-INFO[...] Registered 18 MCP tools
+INFO[...] Registered 30 MCP tools
 INFO[...] Starting UniFi Network MCP Server on stdio transport
 ```
 

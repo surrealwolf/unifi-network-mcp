@@ -104,6 +104,10 @@ func (s *Server) registerTools() {
 	addTool("get_wifi_networks", "Get WiFi networks from a site", s.getWiFiNetworks, map[string]any{
 		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
 	})
+	addTool("get_wifi_network_detailed", "Get detailed information about a specific WiFi network", s.getWiFiNetworkDetailed, map[string]any{
+		"site_id":    map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+		"network_id": map[string]any{"type": "string", "description": "Network ID (required)"},
+	})
 	addTool("get_wifi_broadcasts", "Get WiFi broadcast SSIDs from a site", s.getWiFiBroadcasts, map[string]any{
 		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
 	})
@@ -122,18 +126,41 @@ func (s *Server) registerTools() {
 		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
 	})
 
+	// Health & Status Checks
+	addTool("get_site_health", "Get health status of a site", s.getSiteHealth, map[string]any{
+		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+	})
+	addTool("check_network_endpoint_health", "Check health status of the Unifi Network endpoint", s.checkNetworkEndpointHealth, map[string]any{})
+	addTool("check_protect_endpoint_health", "Check health status of the Unifi Protect endpoint", s.checkProtectEndpointHealth, map[string]any{})
+
 	// Firewall & Security
 	addTool("get_firewall_zones", "Get firewall zones from a site", s.getFirewallZones, map[string]any{
 		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
 	})
+	addTool("get_firewall_zone_detailed", "Get detailed information about a specific firewall zone", s.getFirewallZoneDetailed, map[string]any{
+		"site_id":          map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+		"firewall_zone_id": map[string]any{"type": "string", "description": "Firewall zone ID (required)"},
+	})
 	addTool("get_acl_rules", "Get ACL rules from a site", s.getACLRules, map[string]any{
 		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+	})
+	addTool("get_acl_rule_detailed", "Get detailed information about a specific ACL rule", s.getACLRuleDetailed, map[string]any{
+		"site_id":     map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+		"acl_rule_id": map[string]any{"type": "string", "description": "ACL rule ID (required)"},
 	})
 	addTool("get_hotspot_vouchers", "Get hotspot vouchers from a site", s.getHotspotVouchers, map[string]any{
 		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
 	})
+	addTool("get_hotspot_voucher_detailed", "Get detailed information about a specific hotspot voucher", s.getHotspotVoucherDetailed, map[string]any{
+		"site_id":    map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+		"voucher_id": map[string]any{"type": "string", "description": "Voucher ID (required)"},
+	})
 	addTool("get_traffic_rules", "Get traffic rules from a site", s.getTrafficRules, map[string]any{
 		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+	})
+	addTool("get_traffic_rule_detailed", "Get detailed information about a specific traffic matching rule", s.getTrafficRuleDetailed, map[string]any{
+		"site_id":                  map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+		"traffic_matching_list_id": map[string]any{"type": "string", "description": "Traffic matching list ID (required)"},
 	})
 
 	// VPN
@@ -141,9 +168,21 @@ func (s *Server) registerTools() {
 		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
 	})
 
+	// Network Configuration
+	addTool("get_device_tags", "Get device tags from a site", s.getDeviceTags, map[string]any{
+		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+	})
+	addTool("get_wan_config", "Get WAN configuration from a site", s.getWANConfig, map[string]any{
+		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+	})
+	addTool("get_radius_profiles", "Get RADIUS server profiles from a site", s.getRADIUSProfiles, map[string]any{
+		"site_id": map[string]any{"type": "string", "description": "Site ID (optional, defaults to first site)"},
+	})
+
 	// DPI
 	addTool("get_dpi_categories", "Get DPI traffic categories", s.getDPICategories, map[string]any{})
 	addTool("get_dpi_apps", "Get DPI applications", s.getDPIApps, map[string]any{})
+	addTool("get_dpi_applications", "Get DPI applications list", s.getDPIApplications, map[string]any{})
 
 	// Update handlers
 	addTool("patch_wifi_network", "Update WiFi network settings", s.patchWiFiNetwork, map[string]any{
@@ -1013,6 +1052,263 @@ func (s *Server) createVPNTunnel(ctx context.Context, request mcp.CallToolReques
 		"tunnel":  result,
 		"site_id": resolvedSiteID,
 	})
+}
+
+func (s *Server) getWiFiNetworkDetailed(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_wifi_network_detailed")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	siteID := request.GetString("site_id", "")
+	networkID := request.GetString("network_id", "")
+	if networkID == "" {
+		return mcp.NewToolResultErrorFromErr("Missing required parameter: network_id", nil), nil
+	}
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+	network, err := s.networkClient.GetWiFiNetworkDetailed(ctx, resolvedSiteID, networkID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get network details", err), nil
+	}
+	return mcp.NewToolResultJSON(network)
+}
+
+func (s *Server) getSiteHealth(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_site_health")
+
+	siteID := request.GetString("site_id", "")
+
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		s.logger.WithError(err).Error("Failed to authenticate with Network")
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+
+	// Resolve site ID (if empty, uses first site)
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		s.logger.WithError(err).Error("Failed to resolve site ID")
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+
+	health, err := s.networkClient.GetHealth(ctx, resolvedSiteID)
+	if err != nil {
+		s.logger.WithError(err).Error("Failed to get health")
+		return mcp.NewToolResultErrorFromErr("Failed to get health", err), nil
+	}
+
+	result := map[string]interface{}{
+		"health":  health,
+		"site_id": resolvedSiteID,
+	}
+
+	return mcp.NewToolResultJSON(result)
+}
+
+func (s *Server) checkNetworkEndpointHealth(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: check_network_endpoint_health")
+
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		s.logger.WithError(err).Error("Failed to authenticate with Network")
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+
+	health, err := s.networkClient.CheckEndpointHealth(ctx)
+	if err != nil {
+		s.logger.WithError(err).Error("Failed to check Network endpoint health")
+		return mcp.NewToolResultErrorFromErr("Failed to check endpoint health", err), nil
+	}
+
+	result := map[string]interface{}{
+		"endpoint": "Unifi Network",
+		"health":   health,
+	}
+
+	return mcp.NewToolResultJSON(result)
+}
+
+func (s *Server) checkProtectEndpointHealth(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: check_protect_endpoint_health")
+
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		s.logger.WithError(err).Error("Failed to authenticate with Network")
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+
+	result := map[string]interface{}{
+		"endpoint": "Unifi Protect",
+		"message":  "Protect endpoint health check is not available in network-mcp. Use unifi-mcp for combined access.",
+		"status":   "skipped",
+	}
+
+	return mcp.NewToolResultJSON(result)
+}
+
+func (s *Server) getFirewallZoneDetailed(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_firewall_zone_detailed")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	siteID := request.GetString("site_id", "")
+	zoneID := request.GetString("firewall_zone_id", "")
+	if zoneID == "" {
+		return mcp.NewToolResultErrorFromErr("Missing required parameter: firewall_zone_id", nil), nil
+	}
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+	zone, err := s.networkClient.GetFirewallZoneDetailed(ctx, resolvedSiteID, zoneID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get firewall zone details", err), nil
+	}
+	return mcp.NewToolResultJSON(zone)
+}
+
+func (s *Server) getACLRuleDetailed(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_acl_rule_detailed")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	siteID := request.GetString("site_id", "")
+	ruleID := request.GetString("acl_rule_id", "")
+	if ruleID == "" {
+		return mcp.NewToolResultErrorFromErr("Missing required parameter: acl_rule_id", nil), nil
+	}
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+	rule, err := s.networkClient.GetACLRuleDetailed(ctx, resolvedSiteID, ruleID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get ACL rule details", err), nil
+	}
+	return mcp.NewToolResultJSON(rule)
+}
+
+func (s *Server) getHotspotVoucherDetailed(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_hotspot_voucher_detailed")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	siteID := request.GetString("site_id", "")
+	voucherID := request.GetString("voucher_id", "")
+	if voucherID == "" {
+		return mcp.NewToolResultErrorFromErr("Missing required parameter: voucher_id", nil), nil
+	}
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+	voucher, err := s.networkClient.GetHotspotVoucherDetailed(ctx, resolvedSiteID, voucherID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get voucher details", err), nil
+	}
+	return mcp.NewToolResultJSON(voucher)
+}
+
+func (s *Server) getTrafficRuleDetailed(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_traffic_rule_detailed")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	siteID := request.GetString("site_id", "")
+	ruleID := request.GetString("traffic_matching_list_id", "")
+	if ruleID == "" {
+		return mcp.NewToolResultErrorFromErr("Missing required parameter: traffic_matching_list_id", nil), nil
+	}
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+	rule, err := s.networkClient.GetTrafficRuleDetailed(ctx, resolvedSiteID, ruleID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get traffic rule details", err), nil
+	}
+	return mcp.NewToolResultJSON(rule)
+}
+
+func (s *Server) getDeviceTags(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_device_tags")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	siteID := request.GetString("site_id", "")
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+	tags, err := s.networkClient.GetDeviceTags(ctx, resolvedSiteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get device tags", err), nil
+	}
+	result := map[string]interface{}{
+		"tags":    tags,
+		"count":   len(tags),
+		"site_id": resolvedSiteID,
+	}
+	return mcp.NewToolResultJSON(result)
+}
+
+func (s *Server) getWANConfig(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_wan_config")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	siteID := request.GetString("site_id", "")
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+	wanConfig, err := s.networkClient.GetWANConfig(ctx, resolvedSiteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get WAN config", err), nil
+	}
+	result := map[string]interface{}{
+		"wans":    wanConfig,
+		"count":   len(wanConfig),
+		"site_id": resolvedSiteID,
+	}
+	return mcp.NewToolResultJSON(result)
+}
+
+func (s *Server) getRADIUSProfiles(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_radius_profiles")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	siteID := request.GetString("site_id", "")
+	resolvedSiteID, err := s.resolveSiteID(ctx, siteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to resolve site ID", err), nil
+	}
+	profiles, err := s.networkClient.GetRADIUSProfiles(ctx, resolvedSiteID)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get RADIUS profiles", err), nil
+	}
+	result := map[string]interface{}{
+		"profiles": profiles,
+		"count":    len(profiles),
+		"site_id":  resolvedSiteID,
+	}
+	return mcp.NewToolResultJSON(result)
+}
+
+func (s *Server) getDPIApplications(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.logger.Debug("Tool called: get_dpi_applications")
+	if err := s.networkClient.Authenticate(ctx); err != nil {
+		return mcp.NewToolResultErrorFromErr("Authentication failed", err), nil
+	}
+	applications, err := s.networkClient.GetDPIApplications(ctx)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("Failed to get DPI applications", err), nil
+	}
+	result := map[string]interface{}{
+		"applications": applications,
+		"count":        len(applications),
+	}
+	return mcp.NewToolResultJSON(result)
 }
 
 // ServeStdio starts the MCP server with stdio transport

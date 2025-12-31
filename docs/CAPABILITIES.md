@@ -7,15 +7,19 @@ Complete reference for all UniFi Network MCP tools and their capabilities.
 The UniFi Network MCP Server provides access to UniFi Network management capabilities:
 - **Site Management** - View and manage network sites
 - **Device Management** - Monitor switches, APs, gateways, and other devices
-- **Client Management** - Track connected devices and statistics
-- **WiFi Management** - Configure and monitor WiFi networks
-- **Firewall & Security** - Manage firewall zones, ACLs, and traffic rules
+- **Client Management** - Track connected devices and statistics with detailed queries
+- **WiFi Management** - Configure and monitor WiFi networks with detailed queries
+- **Firewall & Security** - Manage firewall zones, ACLs, and traffic rules with detailed control
+- **VPN Management** - Configure VPN servers and site-to-site tunnels
+- **Network Configuration** - Manage WAN config, RADIUS profiles, and device tags
+- **Health Monitoring** - Monitor network and endpoint health status
 - **System Information** - Monitor network health and statistics
 
-**Total available tools: 18**
-- **GET Tools**: 13 (data retrieval and monitoring)
-- **PATCH Tools**: 3 (resource updates)
-- **POST Tools**: 2 (resource creation)
+**Total available tools: 30**
+- **GET Tools**: 20 (data retrieval and monitoring)
+- **PATCH Tools**: 6 (resource updates)
+- **POST Tools**: 3 (resource creation)
+- **Health Check Tools**: 2 (endpoint and site health)
 
 ---
 
