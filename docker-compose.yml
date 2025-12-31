@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  unifi-network-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: unifi-network-mcp
+    environment:
+      - UNIFI_API_KEY=${UNIFI_API_KEY}
+      - UNIFI_BASE_URL=${UNIFI_BASE_URL}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: unless-stopped
+    networks:
+      - unifi-network
+
+networks:
+  unifi-network:
+    driver: bridge
