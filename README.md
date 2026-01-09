@@ -146,16 +146,42 @@ For detailed AI assistant guidance, see [.github/copilot-instructions.md](.githu
 
 ## Docker Support
 
+This project uses Harbor (`harbor.dataknife.net`) as the container registry.
+
 ### Build Docker Image
 
 ```bash
-docker build -t unifi-network-mcp:latest .
+# Build image for Harbor
+make docker-build
+
+# Or manually
+docker build -t harbor.dataknife.net/library/unifi-network-mcp:latest .
+```
+
+### Push to Harbor
+
+```bash
+# Login to Harbor (robot account)
+docker login harbor.dataknife.net \
+  -u '<HARBOR_USERNAME>' \
+  -p '<HARBOR_PASSWORD>'
+
+# Push image
+make docker-push
+
+# Or manually
+docker push harbor.dataknife.net/library/unifi-network-mcp:latest
 ```
 
 ### Run with Docker
 
 ```bash
-docker run -e UNIFI_API_KEY=your-key -e UNIFI_BASE_URL=https://your-url unifi-network-mcp:latest
+# Pull from Harbor first
+docker pull harbor.dataknife.net/library/unifi-network-mcp:latest
+
+# Run container
+docker run -e UNIFI_API_KEY=your-key -e UNIFI_BASE_URL=https://your-url \
+  harbor.dataknife.net/library/unifi-network-mcp:latest
 ```
 
 ### Docker Compose
@@ -165,7 +191,13 @@ docker run -e UNIFI_API_KEY=your-key -e UNIFI_BASE_URL=https://your-url unifi-ne
 cp .env.example .env
 # Edit .env with your UniFi credentials
 
-# Start the service
+# Login to Harbor (if not already logged in)
+# Replace <HARBOR_USERNAME> and <HARBOR_PASSWORD> with your actual credentials
+docker login harbor.dataknife.net \
+  -u '<HARBOR_USERNAME>' \
+  -p '<HARBOR_PASSWORD>'
+
+# Start the service (pulls from Harbor)
 docker-compose up -d
 
 # View logs

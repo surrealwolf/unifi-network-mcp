@@ -1,5 +1,5 @@
-# Build stage
-FROM golang:1.23-alpine AS builder
+# Build stage - pull from Harbor's DockerHub cache
+FROM harbor.dataknife.net/dockerhub/library/golang:1.23-alpine AS builder
 
 WORKDIR /app
 
@@ -15,8 +15,8 @@ COPY . .
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o unifi-network-mcp ./cmd
 
-# Runtime stage
-FROM alpine:3.18
+# Runtime stage - pull from Harbor's DockerHub cache
+FROM harbor.dataknife.net/dockerhub/library/alpine:3.18
 
 RUN apk --no-cache add ca-certificates
 

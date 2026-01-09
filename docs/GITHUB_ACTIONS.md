@@ -4,9 +4,12 @@ This project includes comprehensive GitHub Actions workflows modeled after the h
 
 ## Workflows Overview
 
+All workflows use **self-hosted runners** for execution.
+
 ### 1. **tests.yml** - Continuous Integration Testing
 - **Trigger**: Push to `main`/`develop`, Pull Requests
-- **Matrix**: Tests on Ubuntu, macOS, Windows with Go 1.23, 1.24
+- **Runner**: `self-hosted`
+- **Matrix**: Tests with Go 1.23, 1.24
 - **Tasks**:
   - Run `go fmt` and `go vet` linters
   - Execute test suite with coverage reporting
@@ -16,11 +19,13 @@ This project includes comprehensive GitHub Actions workflows modeled after the h
 
 ### 2. **docker.yml** - Docker Build Verification
 - **Trigger**: Push to `main`/`develop`, Pull Requests
+- **Runner**: `self-hosted`
 - **Tasks**:
+  - Login to Harbor registry
   - Build Docker image using Buildx
+  - Push to Harbor registry (on main/develop branches)
   - Cache layers via GitHub Actions cache
   - Test the built image
-  - Support for multi-platform builds
 
 ### 3. **auto-approve.yml** - Automatic PR Approval
 - **Trigger**: When `tests.yml` or `docker.yml` complete successfully
@@ -36,6 +41,7 @@ This project includes comprehensive GitHub Actions workflows modeled after the h
 
 ### 5. **release.yml** - Build and Release
 - **Trigger**: When a version tag (v*) is pushed
+- **Runner**: `self-hosted`
 - **Matrix**: Builds for:
   - Linux (amd64, arm64)
   - macOS (amd64, arm64)
@@ -43,6 +49,37 @@ This project includes comprehensive GitHub Actions workflows modeled after the h
 - **Outputs**:
   - Compressed binaries (.tar.gz for Unix, .zip for Windows)
   - GitHub Release with all artifacts and auto-generated notes
+
+## Harbor Registry Setup
+
+This project uses Harbor as the container registry. The following GitHub Actions secrets must be configured:
+
+### Required Secrets
+
+Go to your GitHub repository settings → Secrets and variables → Actions, and add:
+
+1. **HARBOR_USERNAME**: Harbor robot account username
+   - Example: `robot$library+ci-builder`
+
+2. **HARBOR_PASSWORD**: Harbor robot account password/token
+   - Set this value from your Harbor robot account configuration
+
+### Harbor Configuration
+
+- **Registry URL**: `harbor.dataknife.net`
+- **Image Repository**: `harbor.dataknife.net/library/unifi-network-mcp`
+- **Base Images**: Pulled from Harbor's DockerHub cache proxy (`harbor.dataknife.net/dockerhub/library/...`)
+
+### Docker Login
+
+To login locally with the robot account:
+```bash
+docker login harbor.dataknife.net \
+  -u '<HARBOR_USERNAME>' \
+  -p '<HARBOR_PASSWORD>'
+```
+
+Replace `<HARBOR_USERNAME>` and `<HARBOR_PASSWORD>` with your actual Harbor credentials.
 
 ## Usage
 
@@ -53,7 +90,19 @@ make test
 
 ### Building Docker Image Locally
 ```bash
-docker build -t unifi-network-mcp:latest .
+# Build image
+make docker-build
+
+# Build and push to Harbor
+make docker-push
+```
+
+### Building Docker Image Manually
+```bash
+docker build -t harbor.dataknife.net/library/unifi-network-mcp:latest .
+
+# After logging in to Harbor
+docker push harbor.dataknife.net/library/unifi-network-mcp:latest
 ```
 
 ### Creating a Release

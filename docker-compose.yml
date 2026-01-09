@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   unifi-network-mcp:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: harbor.dataknife.net/library/unifi-network-mcp:latest
     container_name: unifi-network-mcp
     environment:
       - UNIFI_API_KEY=${UNIFI_API_KEY}

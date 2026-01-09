@@ -9,7 +9,8 @@ help:
 	@echo "  make fmt            - Format code"
 	@echo "  make lint           - Run linter"
 	@echo "  make check          - Run all checks (fmt, lint, test)"
-	@echo "  make docker-build   - Build Docker image"
+	@echo "  make docker-build   - Build Docker image for Harbor"
+	@echo "  make docker-push    - Build and push Docker image to Harbor"
 	@echo "  make docker-run     - Run Docker container"
 	@echo "  make clean          - Clean build artifacts"
 
@@ -31,14 +32,17 @@ lint:
 check: fmt lint test
 
 docker-build:
-	docker build -t unifi-network-mcp:latest .
+	docker build -t harbor.dataknife.net/library/unifi-network-mcp:latest .
 
 docker-run: docker-build
 	docker run --rm \
 		-e UNIFI_NETWORK_URL="$${UNIFI_NETWORK_URL}" \
 		-e UNIFI_NETWORK_USERNAME="$${UNIFI_NETWORK_USERNAME}" \
 		-e UNIFI_NETWORK_PASSWORD="$${UNIFI_NETWORK_PASSWORD}" \
-		unifi-network-mcp:latest
+		harbor.dataknife.net/library/unifi-network-mcp:latest
+
+docker-push: docker-build
+	docker push harbor.dataknife.net/library/unifi-network-mcp:latest
 
 clean:
 	rm -rf bin/
